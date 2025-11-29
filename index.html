@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFain: CARRIER OPS</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #020202;
+            --c-core: #00fff2;    
+            --c-threat: #ff3333;  
+            --c-intel: #ffcc00;   
+            --c-dim: rgba(255,255,255,0.05);
+        }
+        
+        body { margin: 0; overflow: hidden; background: var(--bg); font-family: 'Rajdhani', sans-serif; color: #fff; }
+
+        /* HUD */
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        .header { position: absolute; top: 30px; left: 30px; }
+        #logo-main { font-family: 'Orbitron'; font-weight: 900; font-size: 42px; line-height: 1; letter-spacing: -2px; color: #fff; text-transform: uppercase; }
+        #logo-main span { color: var(--c-core); font-weight: 400; font-size: 0.6em; letter-spacing: 5px; margin-left: 5px; }
+        .sub-logo { font-family: 'Share Tech Mono'; font-size: 10px; color: var(--c-core); letter-spacing: 4px; margin-top: 5px; opacity: 0.8; }
+        .status-box { margin-top: 15px; border-left: 2px solid var(--c-core); padding-left: 10px; }
+        .status { font-family: 'Share Tech Mono'; font-size: 11px; color: #888; display: block; }
+        #system-state { color: var(--c-core); font-weight: bold; }
+        .blink { animation: blink 2s infinite; }
+
+        /* NEURAL LOG */
+        #neural-log {
+            position: absolute; top: 0; right: 0; width: 320px; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 10, 15, 0.9));
+            border-left: 1px solid rgba(0, 255, 242, 0.1);
+            padding: 30px; box-sizing: border-box;
+            font-family: 'Share Tech Mono'; font-size: 10px; color: var(--c-core);
+            display: flex; flex-direction: column-reverse; pointer-events: none;
+        }
+        .log-entry { margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); opacity: 0; animation: slideIn 0.3s forwards; }
+        .log-t { color: #444; margin-right: 5px; }
+        .log-i { color: var(--c-intel); font-weight: bold; }
+        .log-d { color: var(--c-threat); }
+
+        /* CHART */
+        #chart { width: 100vw; height: 100vh; z-index: 1; }
+        
+        .node circle.aura { fill: transparent; stroke-width: 1px; opacity: 0.1; pointer-events: none; }
+        .node circle.core { stroke-width: 0; transition: r 0.3s, fill 0.3s; cursor: grab; }
+        .node text { font-size: 9px; fill: rgba(255,255,255,0.6); text-anchor: middle; pointer-events: none; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 4px #000; }
+        
+        /* MOTHERSHIP */
+        .carrier circle.core { fill: var(--c-core); filter: drop-shadow(0 0 15px var(--c-core)); stroke: #fff; stroke-width: 1px; }
+        .carrier circle.aura { stroke: var(--c-core); opacity: 0.4; stroke-dasharray: 10, 5; animation: radar-spin 20s infinite linear; }
+        
+        /* SUB-DRONES (Launched) */
+        .subdrone circle.core { fill: #fff; filter: drop-shadow(0 0 5px #fff); }
+
+        .hq circle.core { fill: var(--c-core); filter: drop-shadow(0 0 20px var(--c-core)); stroke: #fff; stroke-width: 2px; cursor: default !important; }
+        .ally circle.core { fill: var(--c-core); opacity: 0.6; }
+
+        .threat circle.core { fill: var(--c-threat); filter: drop-shadow(0 0 10px var(--c-threat)); stroke: #000; stroke-width: 2px; cursor: not-allowed;}
+        .intel circle.core { fill: var(--c-intel); filter: drop-shadow(0 0 10px var(--c-intel)); cursor: pointer; stroke: #fff; stroke-width: 1px; animation: pulse-intel 1s infinite alternate; }
+
+        .link { stroke: var(--c-dim); stroke-width: 1px; pointer-events: none; }
+        .link.active { stroke: var(--c-core); opacity: 0.4; }
+
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        @keyframes radar-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pulse-intel { from { r: 25; opacity: 0.8; } to { r: 28; opacity: 1; } }
+        
+        .scan-wave { fill: none; stroke: var(--c-core); stroke-width: 2px; opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div id="hud">
+        <div class="header">
+            <div id="logo-main">BF<span>ain</span></div>
+            <div class="sub-logo">BIG FATHER // CARRIER OPS</div>
+            <div class="status-box">
+                <div id="system-state" class="status blink">SYSTEM IDLE</div>
+                <div class="status">MOTHERSHIP: READY</div>
+                <div class="status" style="color: var(--c-core)">OP: HAWKAR</div>
+            </div>
+        </div>
+        <div id="neural-log"><div class="log-header">INTENT RECORDER</div><div id="log-feed"></div></div>
+    </div>
+    <div id="chart"></div>
+
+<script>
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const STATE = { IDLE: 0, SCANNING: 1, THREAT_ACTIVE: 2, AWAITING_DECISION: 3, ENGAGING: 4 };
+    let currentState = STATE.IDLE;
+
+    // --- DATA ---
+    const baseNodes = [
+        { id: "BF_CORE", label: "BFain CORE", type: "hq", x: width/2, y: height/2 + 250, r: 30, fx: width/2, fy: height/2 + 250 },
+        { id: "SAT_A", label: "SAT-LINK A", type: "ally", x: width/2 - 300, y: height/2 - 150, r: 10 },
+        { id: "SAT_B", label: "SAT-LINK B", type: "ally", x: width/2 + 300, y: height/2 - 150, r: 10 },
+        // THE MOTHERSHIP
+        { id: "CARRIER", label: "MOTHERSHIP-1", type: "carrier", x: width/2, y: height/2 + 100, r: 25 }
+    ];
+
+    const baseLinks = [
+        { source: "BF_CORE", target: "SAT_A" },
+        { source: "BF_CORE", target: "SAT_B" },
+        { source: "BF_CORE", target: "CARRIER" }
+    ];
+
+    let nodes = JSON.parse(JSON.stringify(baseNodes));
+    let links = JSON.parse(JSON.stringify(baseLinks));
+
+    // --- D3 INIT ---
+    const svg = d3.select("#chart").append("svg").attr("width", width).attr("height", height);
+    
+    // Grid
+    const defs = svg.append("defs");
+    const pattern = defs.append("pattern").attr("id", "grid").attr("width", 40).attr("height", 40).attr("patternUnits", "userSpaceOnUse");
+    pattern.append("path").attr("d", "M 40 0 L 0 0 0 40").style("fill", "none").style("stroke", "#0a0f14").style("stroke-width", 1);
+    svg.append("rect").attr("width", "100%").attr("height", "100%").style("fill", "url(#grid)");
+
+    const g = svg.append("g");
+    const linkG = g.append("g");
+    const nodeG = g.append("g");
+    const fxG = g.append("g");
+
+    const sim = d3.forceSimulation(nodes)
+        .force("link", d3.forceLink(links).id(d => d.id).distance(200))
+        .force("charge", d3.forceManyBody().strength(-200))
+        .force("center", d3.forceCenter(width/2, height/2))
+        .force("y", d3.forceY(height/2).strength(0.02))
+        .on("tick", render);
+
+    function render() {
+        const l = linkG.selectAll(".link").data(links, d => d.source.id + "-" + d.target.id);
+        l.exit().remove();
+        l.enter().append("line").attr("class", d => `link ${d.type||''}`).merge(l)
+            .attr("x1", d => d.source.x).attr("y1", d => d.source.y)
+            .attr("x2", d => d.target.x).attr("y2", d => d.target.y);
+
+        const n = nodeG.selectAll(".node").data(nodes, d => d.id);
+        n.exit().transition().duration(500).style("opacity", 0).remove();
+        
+        const enter = n.enter().append("g").attr("class", d => `node ${d.type}`)
+            .call(d3.drag().on("start", dragStart).on("drag", dragged).on("end", dragEnd))
+            .on("click", handleNodeClick);
+
+        enter.append("circle").attr("class", "aura").attr("r", d => d.r * 2);
+        enter.append("circle").attr("class", "core").attr("r", 0).transition().attr("r", d => d.r);
+        enter.append("text").attr("dy", d => d.r + 15).text(d => d.label);
+
+        n.merge(enter).attr("transform", d => `translate(${d.x},${d.y})`);
+    }
+
+    function dragStart(e, d) { if(d.type==='hq')return; if(!e.active) sim.alphaTarget(0.3).restart(); d.fx=d.x; d.fy=d.y; }
+    function dragged(e, d) { if(d.type==='hq')return; d.fx=e.x; d.fy=e.y; }
+    function dragEnd(e, d) { if(!e.active) sim.alphaTarget(0); } // Hold position
+
+    // --- LOGIC ---
+    function updateStatus(text, color="var(--c-core)") {
+        const el = document.getElementById('system-state');
+        el.innerText = text; el.style.color = color;
+    }
+
+    function log(text, type="sys") {
+        const feed = document.getElementById('log-feed');
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        const t = new Date().toLocaleTimeString('en-US', {hour12:false, minute:'2-digit', second:'2-digit'});
+        if(type === 'threat') div.innerHTML = `<span class="log-t">[${t}]</span> <span class="log-d">ALERT: ${text}</span>`;
+        else if(type === 'intent') div.innerHTML = `<span class="log-t">[${t}]</span> <span class="log-i">>> INTENT: ${text}</span>`;
+        else div.innerHTML = `<span class="log-t">[${t}]</span> <span class="log-sys">${text}</span>`;
+        feed.prepend(div);
+    }
+
+    // --- LOOP ---
+    function runSystemLoop() {
+        if(currentState !== STATE.IDLE) return;
+        currentState = STATE.SCANNING;
+        updateStatus("AUTOSCAN: IN PROGRESS...");
+        
+        const wave = fxG.append("circle").attr("class", "scan-wave")
+            .attr("cx", nodes[0].x).attr("cy", nodes[0].y).attr("r", 10);
+        
+        wave.transition().duration(2500).attr("r", 1500).style("opacity", 0.5)
+            .on("end", () => {
+                wave.remove();
+                if(Math.random() > 0.1) spawnEnemy(); 
+                else {
+                    log("Scan clear."); currentState = STATE.IDLE;
+                    setTimeout(runSystemLoop, 2000); 
+                }
+            });
+    }
+
+    function spawnEnemy() {
+        currentState = STATE.THREAT_ACTIVE;
+        updateStatus("⚠️ THREAT DETECTED", "var(--c-threat)");
+        log("TARGET ACQUIRED: Z-FORCE ARMOR", "threat");
+
+        const enemy = { id: "Z_TARGET_"+Date.now(), label: "Z-FORCE", type: "threat", x: width/2, y: 150, r: 35 };
+        nodes.push(enemy);
+        updateSim();
+        setTimeout(reqResponse, 1000);
+    }
+
+    function reqResponse() {
+        currentState = STATE.AWAITING_DECISION;
+        updateStatus("AWAITING OPERATOR DECISION", "var(--c-intel)");
+        log("AI COMPUTING VECTORS...", "sys");
+
+        setTimeout(() => {
+            // 3 OPTIONS
+            const opt1 = { id: "OPT_DIRECT", label: "OP A: DIRECT", strategy: "direct", type: "intel", x: width/2 - 200, y: height/2, r: 25 };
+            const opt2 = { id: "OPT_FLANK", label: "OP B: FLANK", strategy: "flank", type: "intel", x: width/2, y: height/2, r: 25 };
+            const opt3 = { id: "OPT_PINCER", label: "OP C: PINCER SWARM", strategy: "pincer", type: "intel", x: width/2 + 200, y: height/2, r: 25 };
+            
+            nodes.push(opt1, opt2, opt3);
+            links.push(
+                { source: "BF_CORE", target: "OPT_DIRECT", type: "active" },
+                { source: "BF_CORE", target: "OPT_FLANK", type: "active" },
+                { source: "BF_CORE", target: "OPT_PINCER", type: "active" }
+            );
+            updateSim();
+        }, 800);
+    }
+
+    function handleNodeClick(e, d) {
+        if(d.type === 'intel' && currentState === STATE.AWAITING_DECISION) {
+            executeOption(d);
+        }
+    }
+
+    function executeOption(d) {
+        currentState = STATE.ENGAGING;
+        updateStatus(`EXECUTING: ${d.strategy.toUpperCase()}`, "var(--c-core)");
+        log(`OPERATOR SELECTED: ${d.label}`, "intent");
+        
+        // Remove options
+        nodes = nodes.filter(n => n.type !== 'intel');
+        links = links.filter(l => l.target.type !== 'intel' && l.source.type !== 'intel');
+        updateSim();
+
+        const carrier = nodes.find(n => n.type === "carrier");
+        const enemy = nodes.filter(n => n.type === 'threat')[0];
+        
+        if(!enemy) { finalizeEngage(); return; }
+
+        // --- TACTICAL MOVEMENT ---
+        let moveX, moveY;
+
+        if (d.strategy === "direct") {
+            // Direct: Fly close to target front
+            moveX = enemy.x;
+            moveY = enemy.y + 100;
+        } else if (d.strategy === "flank") {
+            // Flank: Fly to side
+            moveX = enemy.x + 180;
+            moveY = enemy.y;
+        } else if (d.strategy === "pincer") {
+            // Pincer: Fly to mid-distance, then release swarm
+            moveX = width/2;
+            moveY = height/2 - 100;
+        }
+
+        // 1. Move Carrier
+        carrier.fx = carrier.x; carrier.fy = carrier.y; // Lock for tween
+        
+        d3.select({t:0}).transition().duration(1500).tween("fly", function() {
+            return function(t) {
+                carrier.fx = carrier.x + (moveX - carrier.x) * t;
+                carrier.fy = carrier.y + (moveY - carrier.y) * t;
+                sim.alpha(1).restart();
+            };
+        }).on("end", () => {
+            // 2. Fire Sequence
+            if (d.strategy === "pincer") {
+                deployPincer(carrier, enemy);
+            } else {
+                fireOne(carrier, enemy);
+            }
+        });
+    }
+
+    function fireOne(carrier, enemy) {
+        log("ENGAGING TARGET...", "sys");
+        launchProjectile(carrier, enemy, () => {
+            destroy(enemy);
+            returnToBase(carrier);
+        });
+    }
+
+    function deployPincer(carrier, enemy) {
+        log("DEPLOYING SWARM (L/R)...", "sys");
+        
+        // Visual: Spawn 2 sub-nodes
+        const droneL = { x: carrier.x, y: carrier.y };
+        const droneR = { x: carrier.x, y: carrier.y };
+
+        // Move them to sides
+        const targetL = { x: enemy.x - 80, y: enemy.y };
+        const targetR = { x: enemy.x + 80, y: enemy.y };
+
+        const gL = fxG.append("circle").attr("r", 5).attr("fill", "#0ff").attr("cx", droneL.x).attr("cy", droneL.y);
+        const gR = fxG.append("circle").attr("r", 5).attr("fill", "#0ff").attr("cx", droneR.x).attr("cy", droneR.y);
+
+        // Animate separation
+        gL.transition().duration(600).attr("cx", targetL.x).attr("cy", targetL.y);
+        gR.transition().duration(600).attr("cx", targetR.x).attr("cy", targetR.y)
+            .on("end", () => {
+                // Fire from both sides
+                launchProjectile({x:targetL.x, y:targetL.y}, enemy, null);
+                launchProjectile({x:targetR.x, y:targetR.y}, enemy, () => {
+                     destroy(enemy);
+                     gL.remove(); gR.remove();
+                     returnToBase(carrier);
+                });
+            });
+    }
+
+    function returnToBase(carrier) {
+        log("Target destroyed. RTB.");
+        d3.timeout(() => {
+            carrier.fx = null; carrier.fy = null; // Release physics
+            sim.alpha(0.5).restart();
+            setTimeout(finalizeEngage, 2000);
+        }, 1000);
+    }
+
+    function finalizeEngage() {
+        nodes = JSON.parse(JSON.stringify(baseNodes));
+        links = JSON.parse(JSON.stringify(baseLinks));
+        updateSim();
+        currentState = STATE.IDLE;
+        updateStatus("SYSTEM IDLE");
+        setTimeout(runSystemLoop, 2000);
+    }
+
+    function launchProjectile(src, trg, cb) {
+        const p = fxG.append("circle").attr("cx", src.x).attr("cy", src.y).attr("r", 3).attr("fill", "#fff");
+        p.transition().duration(300).ease(d3.easeLinear).attr("cx", trg.x).attr("cy", trg.y)
+            .on("end", function() {
+                d3.select(this).remove();
+                fxG.append("circle").attr("cx", trg.x).attr("cy", trg.y).attr("r", 10)
+                    .style("stroke", "#ffae00").style("stroke-width", 3).style("fill", "none")
+                    .transition().duration(400).attr("r", 60).style("opacity", 0).remove();
+                if(cb) cb();
+            });
+    }
+
+    function destroy(n) {
+        nodes = nodes.filter(x => x.id !== n.id);
+        links = links.filter(x => x.source.id !== n.id && x.target.id !== n.id);
+        updateSim();
+    }
+
+    function updateSim() {
+        sim.nodes(nodes);
+        sim.force("link").links(links);
+        sim.alpha(0.8).restart();
+        render();
+    }
+
+    setTimeout(runSystemLoop, 1000);
+</script>
+</body>
+</html>
