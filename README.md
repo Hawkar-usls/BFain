@@ -70,4 +70,4 @@ BFain is built with a 3-phase evolution path, moving from manual input to pure t
 *This project is a conceptual prototype developed by **Hawkar** (Oleksandr Ahapov) in Zaporizhzhia, Ukraine. It serves as a visual proposal for next-generation defense interfaces and does not contain classified algorithms or hardware integrations.*
 
 ---
-**Contact:** [Твоя ссылка на LinkedIn или Почту]
+**Contact:** Hawkarlol@gmail.com TG id:@hawkar_lol
