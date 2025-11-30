@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BFain: TACTICAL SUITE v2.1</title>
+    <title>BFain: TACTICAL SUITE v2.2</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     
@@ -13,6 +13,8 @@
             --c-core: #00fff2;    
             --c-threat: #ff3333;  
             --c-intel: #ffcc00;   
+            --c-psy: #d300ff;     /* Controller / Psy Color */
+            --c-plug: #ffae00;    /* Plug / Kinetic Color */
             --c-home: #00ff41;
             --c-dim: rgba(255,255,255,0.1);
             --safe-top: env(safe-area-inset-top);
@@ -24,10 +26,18 @@
         /* UI */
         #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: flex; flex-direction: column; justify-content: space-between; }
         .header { padding: calc(20px + var(--safe-top)) 20px 0 20px; }
-        #logo-main { font-family: 'Orbitron'; font-weight: 900; font-size: 28px; line-height: 1; letter-spacing: -1px; text-transform: uppercase; text-shadow: 0 0 15px var(--c-core); }
+        
+        #logo-main { 
+            font-family: 'Orbitron'; font-weight: 900; font-size: 28px; line-height: 1; letter-spacing: -1px; 
+            text-transform: uppercase; text-shadow: 0 0 15px var(--c-core);
+        }
         #logo-main span { color: var(--c-core); font-size: 0.8em; }
         .sub-logo { font-family: 'Share Tech Mono'; font-size: 10px; color: var(--c-core); opacity: 0.7; margin-top: 5px; }
-        #system-state { font-family: 'Share Tech Mono'; font-size: 12px; color: var(--c-core); margin-top: 10px; padding-left: 10px; border-left: 2px solid var(--c-core); }
+
+        #system-state { 
+            font-family: 'Share Tech Mono'; font-size: 12px; color: var(--c-core); 
+            margin-top: 10px; padding-left: 10px; border-left: 2px solid var(--c-core); 
+        }
         .blink { animation: blink 1.5s infinite; }
 
         /* LOG */
@@ -42,6 +52,7 @@
         .log-entry { margin-bottom: 4px; }
         .log-i { color: var(--c-intel); font-weight: bold; } 
         .log-d { color: var(--c-threat); }
+        .log-p { color: var(--c-psy); font-weight: bold; }
 
         /* MENU */
         #menu-overlay {
@@ -51,6 +62,7 @@
             backdrop-filter: blur(10px);
         }
         .menu-title { font-family: 'Orbitron'; font-size: 20px; color: #fff; margin-bottom: 20px; text-align: center; letter-spacing: 2px; }
+        
         .menu-btn {
             background: rgba(0, 255, 242, 0.08); border: 1px solid var(--c-core); color: var(--c-core);
             padding: 16px 20px; margin: 8px; width: 85%; max-width: 320px;
@@ -62,6 +74,12 @@
         .menu-btn:active { background: var(--c-core); color: #000; transform: scale(0.98); }
         .menu-btn small { display: block; font-size: 9px; font-family: 'Share Tech Mono'; opacity: 0.6; margin-top: 4px; text-transform: none; letter-spacing: 0; color: #fff; }
         .menu-btn::before { content: ''; position: absolute; left: 0; top: 0; height: 100%; width: 4px; background: var(--c-core); }
+
+        /* BUTTON VARIANTS */
+        .btn-psy { border-color: var(--c-psy); color: var(--c-psy); }
+        .btn-psy::before { background: var(--c-psy); }
+        .btn-psy:active { background: var(--c-psy); color: #000; }
+
         .btn-home { border-color: var(--c-home); color: var(--c-home); }
         .btn-home::before { background: var(--c-home); }
         .btn-home:active { background: var(--c-home); color: #000; }
@@ -82,13 +100,32 @@
         /* STYLES */
         .hq circle.core { fill: var(--c-core); filter: drop-shadow(0 0 15px var(--c-core)); stroke: #fff; stroke-width: 2px; }
         .hq circle.aura { stroke: var(--c-core); opacity: 0.3; stroke-dasharray: 2, 4; animation: radar-spin 10s infinite linear; }
+        
         .homebase circle.core { fill: var(--c-home); filter: drop-shadow(0 0 20px var(--c-home)); stroke: #fff; stroke-width: 2px; }
         .homebase.locked circle.core { fill: #ff0000; filter: drop-shadow(0 0 30px #ff0000); }
+        
         .ally circle.core { fill: var(--c-core); filter: drop-shadow(0 0 8px var(--c-core)); opacity: 0.9; }
+        
         .sleeper circle.core { fill: #222; stroke: var(--c-core); stroke-width: 1px; animation: sleep-pulse 3s infinite; }
         .sleeper circle.aura { opacity: 0; }
+        /* CONTROLLER ACTIVE STATE */
+        .sleeper.active circle.core { fill: var(--c-psy); stroke: #fff; filter: drop-shadow(0 0 15px var(--c-psy)); animation: none; }
+
+        .plug circle.core { fill: var(--c-plug); stroke: #fff; filter: drop-shadow(0 0 10px var(--c-plug)); }
+
         .threat circle.core { fill: var(--c-threat); filter: drop-shadow(0 0 10px var(--c-threat)); stroke: #fff; stroke-width: 1px;}
+        
+        /* INTEL BUTTONS */
         .intel circle.core { fill: var(--c-intel); filter: drop-shadow(0 0 10px var(--c-intel)); stroke: #fff; stroke-width: 1px; animation: pulse-intel 1s infinite alternate; cursor: pointer; }
+        
+        /* PSY BUTTON */
+        .psy-opt circle.core { fill: var(--c-psy); filter: drop-shadow(0 0 15px var(--c-psy)); stroke: #fff; animation: pulse-intel 1s infinite alternate; cursor: pointer; }
+        .psy-opt text { fill: var(--c-psy); }
+
+        /* PLUG BUTTON */
+        .plug-opt circle.core { fill: var(--c-plug); filter: drop-shadow(0 0 15px var(--c-plug)); stroke: #fff; animation: pulse-intel 0.5s infinite alternate; cursor: pointer; }
+        .plug-opt text { fill: var(--c-plug); }
+
         .link { stroke: var(--c-dim); stroke-width: 1px; pointer-events: none; }
         .link.active { stroke: var(--c-core); opacity: 0.4; }
 
@@ -96,7 +133,9 @@
         @keyframes radar-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes sleep-pulse { 0% { opacity: 0.3; } 50% { opacity: 0.6; stroke-width: 2px; } 100% { opacity: 0.3; } }
         @keyframes pulse-intel { from { r: 25; opacity: 0.8; } to { r: 28; opacity: 1; } }
+        
         .scan-wave { fill: none; stroke: var(--c-core); stroke-width: 2px; opacity: 0; pointer-events: none; }
+        .psy-wave { fill: none; stroke: var(--c-psy); stroke-width: 2px; opacity: 0; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -114,9 +153,9 @@
             <small>Tactical maneuvering: Flank & Suppress.</small>
         </div>
         
-        <div class="menu-btn" onclick="loadScenario('SLEEPER')">
-            SLEEPER DRONE
-            <small>Deep cover asset. Observation & Assassination.</small>
+        <div class="menu-btn btn-psy" onclick="loadScenario('CONTROLLER')">
+            CONTROLLER OPS
+            <small>Psy-Op Beacon + Kinetic Plug (Two-stage).</small>
         </div>
 
         <div class="menu-btn btn-home" onclick="loadScenario('HOMEDOME')">
@@ -124,7 +163,7 @@
             <small>Perimeter defense. Sentry launch from silo.</small>
         </div>
 
-        <div style="margin-top: 30px; font-size: 10px; color: #444; font-family: 'Share Tech Mono';">BFain v2.1 // HAWKAR</div>
+        <div style="margin-top: 30px; font-size: 10px; color: #444; font-family: 'Share Tech Mono';">BFain v2.2 // HAWKAR</div>
     </div>
 
     <button id="back-btn" onclick="location.reload()">[ EXIT SIM ]</button>
@@ -154,6 +193,7 @@
     // --- D3 INIT ---
     const svg = d3.select("#chart").append("svg").attr("width", width).attr("height", height);
     
+    // Grid
     const defs = svg.append("defs");
     const pattern = defs.append("pattern").attr("id", "grid").attr("width", 30).attr("height", 30).attr("patternUnits", "userSpaceOnUse");
     pattern.append("path").attr("d", "M 30 0 L 0 0 0 30").style("fill", "none").style("stroke", "#0a0f14").style("stroke-width", 1);
@@ -193,10 +233,10 @@
             ],
             links: [ { source: "HQ", target: "ALPHA" }, { source: "HQ", target: "BRAVO" }, { source: "HQ", target: "UAV" } ]
         },
-        SLEEPER: {
+        CONTROLLER: {
             nodes: [
                 { id: "HQ", label: "COMMAND", type: "hq", x: width/2, y: height-80, r: 25, fx: width/2, fy: height-80 },
-                { id: "GHOST", label: "SLEEPER-6", type: "sleeper", x: width/2, y: height/2 - 50, r: 15 }
+                { id: "GHOST", label: "SLEEPER", type: "sleeper", x: width/2, y: height/2 - 50, r: 15 }
             ],
             links: [ { source: "HQ", target: "GHOST" } ]
         },
@@ -218,19 +258,16 @@
     function loadScenario(type) {
         clearTimeout(mainLoopTimer); 
         currentScenario = type;
-        
         document.getElementById('menu-overlay').style.display = 'none';
         document.getElementById('back-btn').style.display = 'block';
         
         currentState = STATE.IDLE;
-        
         const data = JSON.parse(JSON.stringify(SCENARIOS[type]));
-        nodes = data.nodes;
-        links = data.links;
+        nodes = data.nodes; links = data.links;
         
         updateSim();
         
-        const color = currentScenario === 'HOMEDOME' ? 'var(--c-home)' : 'var(--c-core)';
+        const color = currentScenario === 'HOMEDOME' ? 'var(--c-home)' : (currentScenario === 'CONTROLLER' ? 'var(--c-psy)' : 'var(--c-core)');
         updateStatus(`${type} PROTOCOL: ONLINE`, color);
         log(`SCENARIO INITIALIZED: ${type}`);
         
@@ -272,8 +309,7 @@
         wave.transition().duration(1500).attr("r", width).style("opacity", 0)
             .on("end", () => wave.remove());
 
-        // GUARANTEED SPAWN
-        mainLoopTimer = setTimeout(spawnEnemy, 1500);
+        setTimeout(spawnEnemy, 1500);
     }
 
     function spawnEnemy() {
@@ -281,13 +317,14 @@
         updateStatus("⚠️ THREAT DETECTED", "var(--c-threat)");
         
         let label = "HOSTILE";
-        let ex = width/2, ey = 100; // Default Top
+        let ex = width/2, ey = 100;
         
         if(currentScenario === 'HOMEDOME') {
             label = "INTRUDER";
             ex = width/2 + (Math.random() > 0.5 ? 120 : -120);
             ey = height/2 + 150; 
-        } else if (currentScenario === 'SLEEPER') {
+        } else if (currentScenario === 'CONTROLLER') {
+            label = "HEAVY ARMOR";
             ex = width/2; ey = 150;
         }
 
@@ -304,50 +341,59 @@
         updateStatus("AWAITING COMMAND...", "var(--c-intel)");
         log("SOLUTIONS GENERATED.", "sys");
 
-        const hq = nodes.find(n => n.type === 'hq' || n.type === 'homebase');
-        
-        // BUTTONS based on Scenario
-        if (currentScenario === 'CARRIER') {
-            addOption("DIRECT HIT", "direct", width/2 - 80, height/2);
-            addOption("PINCER SWARM", "pincer", width/2 + 80, height/2);
-        } else if (currentScenario === 'SQUAD') {
-            addOption("SUPPRESS FIRE", "suppress", width/2 - 80, height/2 + 100);
-            addOption("FLANK MANEUVER", "flank", width/2 + 80, height/2 + 100);
-        } else if (currentScenario === 'SLEEPER') {
-            addOption("WAKE & KILL", "wake", width/2, height/2 + 50);
-        } else if (currentScenario === 'HOMEDOME') {
-            addOption("DEPLOY SENTRY", "sentry", width/2 - 70, height/2 - 60);
-            addOption("LOCKDOWN", "lock", width/2 + 70, height/2 - 60);
-        }
-        updateSim();
+        setTimeout(() => {
+            const hq = nodes.find(n => n.type === 'hq' || n.type === 'homebase');
+            
+            // --- BUTTON GENERATION ---
+            if (currentScenario === 'CARRIER') {
+                addOption("DIRECT HIT", "direct", width/2 - 80, height/2);
+                addOption("PINCER SWARM", "pincer", width/2 + 80, height/2);
+            } else if (currentScenario === 'SQUAD') {
+                addOption("SUPPRESS FIRE", "suppress", width/2 - 80, height/2 + 100);
+                addOption("FLANK MANEUVER", "flank", width/2 + 80, height/2 + 100);
+            } else if (currentScenario === 'CONTROLLER') {
+                // START WITH CONTROLLER ONLY
+                addOption("DEPLOY CONTROLLER", "haunt", width/2, height/2 + 50, "psy-opt");
+            } else if (currentScenario === 'HOMEDOME') {
+                addOption("DEPLOY SENTRY", "sentry", width/2 - 70, height/2 - 60);
+                addOption("LOCKDOWN", "lock", width/2 + 70, height/2 - 60);
+            }
+            updateSim();
+        }, 500);
     }
 
-    function addOption(label, strategy, x, y) {
-        const opt = { id: "OPT_"+strategy, label: label, strategy: strategy, type: "intel", x: x, y: y, r: 25 };
+    function addOption(label, strategy, x, y, typeClass="intel") {
+        const opt = { id: "OPT_"+strategy, label: label, strategy: strategy, type: typeClass, x: x, y: y, r: 25 };
         nodes.push(opt);
         const hq = nodes.find(n => n.type === 'hq' || n.type === 'homebase');
         if(hq) links.push({ source: hq.id, target: opt.id, type: "active" });
     }
 
     function handleNodeClick(e, d) {
-        if(d.type === 'intel' && currentState === STATE.AWAITING_DECISION) executeOption(d);
+        if((d.type === 'intel' || d.type === 'psy-opt' || d.type === 'plug-opt') && currentState === STATE.AWAITING_DECISION) executeOption(d);
     }
 
-    // --- EXECUTION LOGIC FIXED ---
+    // --- EXECUTION LOGIC ---
     function executeOption(d) {
+        // Clear buttons (unless special case)
+        if (d.strategy !== 'haunt') {
+            nodes = nodes.filter(n => !n.type.includes('opt'));
+            links = links.filter(l => !l.target.type.includes('opt'));
+        } else {
+            // If haunt, remove only the haunt button
+            nodes = nodes.filter(n => n.strategy !== 'haunt');
+            links = links.filter(l => l.target.strategy !== 'haunt');
+        }
+
         currentState = STATE.ENGAGING;
         updateStatus(`EXECUTING: ${d.strategy.toUpperCase()}`, "var(--c-core)");
         log(`COMMAND: ${d.label}`, "intent");
-        
-        // Clear buttons
-        nodes = nodes.filter(n => n.type !== 'intel');
-        links = links.filter(l => l.target.type !== 'intel');
         updateSim();
 
         const enemy = nodes.find(n => n.type === 'threat');
         if(!enemy) { finalize(); return; }
 
-        // --- SPECIFIC BEHAVIORS ---
+        // --- SCENARIO LOGIC ---
 
         // 1. HOME DOME
         if (currentScenario === 'HOMEDOME') {
@@ -355,48 +401,77 @@
                 const base = nodes.find(n => n.type === 'homebase');
                 d3.select(base.node).select('.core').style('fill', '#f00'); 
                 log("PERIMETER LOCKED. SECURE.", "sys");
-                setTimeout(finalize, 2000); // Just secure, no kill
+                setTimeout(finalize, 2000); 
             } else {
                 launchSentry(enemy);
             }
         }
-        // 2. SLEEPER
-        else if (currentScenario === 'SLEEPER') {
-            const ghost = nodes.find(n => n.type === 'sleeper');
-            if(ghost) {
-                log("SLEEPER ACTIVATED", "sys");
-                ghost.type = "ally"; ghost.label = "GHOST [ACTIVE]"; updateSim();
-                // Fly to enemy
+        // 2. CONTROLLER (Dual Stage)
+        else if (currentScenario === 'CONTROLLER') {
+            const ghost = nodes.find(n => n.type === 'sleeper' || n.label.includes('CONTROLLER'));
+            
+            if (d.strategy === 'haunt') {
+                // PHASE 1: BEACON
+                log("CONTROLLER: INJECTING 19HZ...", "log-p");
+                ghost.type = "sleeper active"; ghost.label = "CONTROLLER [ACTIVE]"; 
+                updateSim();
+                
                 d3.select({t:0}).transition().duration(1000).tween("fly", () => t => {
-                    ghost.fx = ghost.x + (enemy.x - ghost.x) * t;
+                    ghost.fx = ghost.x + (enemy.x + 50 - ghost.x) * t;
                     ghost.fy = ghost.y + (enemy.y - ghost.y) * t;
                     sim.alpha(1).restart();
-                }).on("end", () => fire(ghost, enemy));
+                }).on("end", () => {
+                    emitWaves(ghost); // Visual
+                    setTimeout(() => {
+                        log("TARGET TAGGED. REQUESTING KINETIC.", "log-d");
+                        // PHASE 2: SPAWN PLUG BUTTON
+                        addOption("LAUNCH PLUG", "plug", width/2, height/2 + 80, "plug-opt");
+                        updateSim();
+                        currentState = STATE.AWAITING_DECISION;
+                    }, 1500);
+                });
+            } else if (d.strategy === 'plug') {
+                // PHASE 2: EXECUTE
+                log("DEPLOYING PLUG DRONE...", "intent");
+                // Remove Plug Button
+                nodes = nodes.filter(n => n.strategy !== 'plug');
+                links = links.filter(l => l.target.strategy !== 'plug');
+                
+                const hq = nodes.find(n => n.type === 'hq');
+                const plug = { id: "PLUG", label: "PLUG", type: "ally plug", x: hq.x, y: hq.y, r: 8 };
+                nodes.push(plug); updateSim();
+                
+                d3.select({t:0}).transition().duration(600).tween("fly", () => t => {
+                    plug.fx = plug.x + (enemy.x - plug.x) * t;
+                    plug.fy = plug.y + (enemy.y - plug.y) * t;
+                    sim.alpha(1).restart();
+                }).on("end", () => {
+                    fire(plug, enemy, false); // Kill
+                    // Controller Return
+                    const ghost = nodes.find(n => n.label.includes("CONTROLLER"));
+                    returnToBase(ghost);
+                });
             }
         }
         // 3. SQUAD
         else if (currentScenario === 'SQUAD') {
             const squad = nodes.filter(n => n.label.includes("ALPHA") || n.label.includes("BRAVO"));
             const isFlank = d.strategy === 'flank';
-            
             squad.forEach((unit, i) => {
                 const offsetX = i === 0 ? -60 : 60;
-                
                 // FLANK = Move OUT then IN
-                // SUPPRESS = Move STRAIGHT
-                
                 if (isFlank) {
                     const wideX = i===0 ? enemy.x - 150 : enemy.x + 150;
                     d3.select({t:0}).transition().duration(1500).tween("move", () => t => {
-                        // Curve
-                        unit.fx = (1-t)*unit.x + t*wideX;
-                        unit.fy = (1-t)*unit.y + t*enemy.y; // Simplified linear for demo
+                        // Quadratic Bezier
+                        unit.fx = (1-t)*(1-t)*unit.x + 2*(1-t)*t*wideX + t*t*(enemy.x + offsetX);
+                        unit.fy = (1-t)*(1-t)*unit.y + 2*(1-t)*t*enemy.y + t*t*(enemy.y + 100);
                         sim.alpha(1).restart();
                     }).on("end", () => fire(unit, enemy));
-                } else {
+                } else { // Direct
                     d3.select({t:0}).transition().duration(1000).tween("move", () => t => {
                         unit.fx = unit.x + (enemy.x + offsetX - unit.x) * t;
-                        unit.fy = unit.y + (enemy.y + 100 - unit.y) * t; // Stop short
+                        unit.fy = unit.y + (enemy.y + 100 - unit.y) * t; 
                         sim.alpha(1).restart();
                     }).on("end", () => fire(unit, enemy));
                 }
@@ -406,7 +481,6 @@
         else { 
             const carrier = nodes.find(n => n.label === "MOTHERSHIP");
             const isPincer = d.strategy === 'pincer';
-            
             d3.select({t:0}).transition().duration(1000).tween("move", () => t => {
                 carrier.fx = carrier.x + (enemy.x - carrier.x) * t;
                 carrier.fy = carrier.y + (enemy.y + (isPincer?150:100) - carrier.y) * t;
@@ -415,6 +489,14 @@
                 if(isPincer) deployPincer(carrier, enemy);
                 else fire(carrier, enemy);
             });
+        }
+    }
+
+    function emitWaves(source) {
+        for(let i=0; i<3; i++) {
+            const w = fxG.append("circle").attr("class", "psy-wave")
+                .attr("cx", source.x).attr("cy", source.y).attr("r", 10).style("stroke", "var(--c-psy)");
+            w.transition().delay(i*300).duration(1500).attr("r", 80).style("opacity", 0).remove();
         }
     }
 
@@ -442,6 +524,19 @@
             fire({x:enemy.x+80, y:enemy.y}, enemy);
             d1.remove(); d2.remove();
         });
+    }
+
+    function returnToBase(unit) {
+        if(!unit) return;
+        // Simple float back logic via physics unlock or tween
+        const hq = nodes.find(n => n.type === 'hq');
+        if(hq) {
+             d3.select({t:0}).transition().delay(1000).duration(1500).tween("rtb", () => t => {
+                unit.fx = unit.x + (hq.x - unit.x) * t;
+                unit.fy = unit.y + ((hq.y - 100) - unit.y) * t; // Park nearby
+                sim.alpha(1).restart();
+            });
+        }
     }
 
     function fire(src, trg, rtb=false) {
@@ -475,7 +570,7 @@
                     finalize();
                 });
             } else {
-                setTimeout(finalize, 1500);
+                setTimeout(finalize, 2000);
             }
         }
     }
@@ -512,6 +607,7 @@
         const t = new Date().toLocaleTimeString('en-US', {hour12:false, minute:'2-digit', second:'2-digit'});
         if(type === 'threat') div.innerHTML = `<span class="log-t">[${t}]</span> <span class="log-d">ALERT: ${text}</span>`;
         else if(type === 'intent') div.innerHTML = `<span class="log-t">[${t}]</span> <span class="log-i">>> INTENT: ${text}</span>`;
+        else if(type === 'log-p') div.innerHTML = `<span class="log-t">[${t}]</span> <span class="log-p">${text}</span>`;
         else div.innerHTML = `<span class="log-t">[${t}]</span> <span class="log-sys">${text}</span>`;
         feed.prepend(div);
     }
