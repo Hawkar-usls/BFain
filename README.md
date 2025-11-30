@@ -1,4 +1,4 @@
-# BFain: Battlefield AI Nexus (v1.5)
+# BFain: Battlefield AI Nexus (v2.1)
 
 > **"Routing Human Intent at the Speed of Thought."**
 
