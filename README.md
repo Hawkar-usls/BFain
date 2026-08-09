@@ -1,73 +1,60 @@
-# BFain: Battlefield AI Nexus (v2.1)
+# BFain — Battlefield AI Nexus
 
-> **"Routing Human Intent at the Speed of Thought."**
+> **Experimental command-and-control interface prototype.**
 
-![Status](https://img.shields.io/badge/Status-Prototype_v1.5-00fff2?style=flat-square) ![Focus](https://img.shields.io/badge/Focus-C2_Systems-ff3333?style=flat-square) ![License](https://img.shields.io/badge/License-Concept-ffcc00?style=flat-square)
+BFain explores a human-machine interface idea for complex multi-agent command systems: instead of manually steering every unit, an operator selects a high-level intent and the interface visualizes how a simulated coordination layer could decompose that intent into lower-level actions.
 
-**BFain** (Battlefield AI Nexus) is a Semantic Operating System concept designed to revolutionize Command & Control (C2). It addresses the critical "Packet Loss" in Human-to-Machine communication by replacing manual micromanagement with **Kinetic Intent Routing**.
+This repository is a **front-end concept and simulation prototype**. It is not a deployed weapons-control system, does not contain classified integrations, and does not establish autonomous tactical superiority or BCI control.
 
----
+## Current prototype
 
-## 🎯 The Mission
-Modern warfare suffers from high **Bio-Latency** and **Cognitive Overload**.
-* **The bottleneck:** Operators cannot effectively control drone swarms using joysticks and voice commands in real-time.
-* **The solution:** BFain treats the battlefield as a network topology. The operator defines the *Intent* (e.g., "Neutralize", "Flank"), and the AI executes the *Kinetic Action* (pathfinding, ballistics, coordination).
+### Strategic topology view
 
-## ⚡ Key Features (v1.5 Prototype)
+- visualizes simulated assets, links, and command relationships;
+- presents possible actions and system state in one workspace;
+- supports drag/touch interaction for rapid prototyping.
 
-This repository hosts a live functional prototype demonstrating the core UX/UI principles:
+### Simulated multi-agent coordination
 
-### 1. Strategic Overwatch ("God View")
-* Real-time topology visualization of assets (Satellites, Swarms, HQ).
-* Visual representation of data links and command range.
+The demo includes illustrative behaviors such as formation changes, carrier/sub-unit relationships, and coordinated movement. These are interface demonstrations, not validated battlefield autonomy.
 
-### 2. Autonomous Swarm Logic
-* **Carrier Ops (Mothership):** Demonstration of a heavy carrier drone deploying autonomous sub-drones.
-* **Tactical Maneuvers:** AI-driven execution of complex strategies like **Pincer Movements** and **Flanking** with a single click.
-* **Auto-Loop:** The system automatically scans, detects threats, and proposes solutions. The operator only needs to *approve*.
+### Accessibility research direction
 
-### 3. Accessible Warfare ("The Wounded Warrior")
-* **Zero-Motor Interface:** Designed to be operated via **Eye-Tracking** or simple clicks.
-* **Inclusion:** Enables wounded veterans (amputees, paralyzed operators) to remain valuable strategic assets, utilizing their combat experience without requiring physical dexterity.
+The interface is designed to be usable with reduced-motor-input methods such as simplified click, switch, eye-tracking, or other assistive interfaces when paired with suitable hardware.
 
----
+BCI integration remains a future research direction. The repository does **not** claim access to pre-conscious intent, neural decoding, or command execution before an operator has formed and authorized a decision.
 
-## 🛠️ Technology Stack
+## Technology
 
-* **Core:** Native JavaScript (ES6+), HTML5, CSS3.
-* **Visualization Engine:** [D3.js](https://d3js.org/) (Data-Driven Documents) for dynamic topology rendering.
-* **Architecture:** Frontend-only concept (Rapid Prototyping).
+- JavaScript (ES6+)
+- HTML5 / CSS3
+- D3.js visualization
+- front-end simulation architecture
 
----
+## Run
 
-## 🔮 Roadmap: The "Zero Latency" Doctrine
+Clone the repository and open `index.html` in a modern browser.
 
-BFain is built with a 3-phase evolution path, moving from manual input to pure thought control.
+The demo can be used to inspect the topology UI and simulated coordination flows without external services.
 
-* **Phase 1: Touch/Click (Current)**
-    * Building the dataset of tactical decisions. Reducing the OODA loop to seconds.
-* **Phase 2: Spatial (AR/VR)**
-    * Native integration with HUDs. Soldiers see "Intent Lines" overlaid on reality.
-* **Phase 3: Neural (BCI)**
-    * Integration with **Neuralink**.
-    * **Goal:** Pre-Cognitive Control. Executing intent milliseconds *before* the operator consciously formulates the command, bypassing biological lag entirely.
+## Research boundary
 
----
+```text
+C2_INTERFACE_PROTOTYPE = IMPLEMENTED
+SIMULATED_MULTI_AGENT_UI = IMPLEMENTED
+REAL_PLATFORM_INTEGRATION = NOT_ESTABLISHED
+BCI_INTEGRATION = NOT_IMPLEMENTED
+NEURAL_INTENT_DECODING = NOT_CLAIMED
+AUTONOMOUS_WEAPON_AUTHORITY = NOT_CLAIMED
+OPERATIONAL_DEPLOYMENT = NOT_CLAIMED
+```
 
-## 🚀 How to Run
+Any future real-world deployment would require separate safety, legal, human-authorization, cybersecurity, platform-integration, and validation work.
 
-1.  Clone this repository.
-2.  Open `index.html` in any modern browser.
-3.  **Simulation Guide:**
-    * Wait for the **AUTO-SCAN** to detect a `Z-FORCE` threat.
-    * When **"AWAITING DECISION"** appears, select a yellow Intel Node (e.g., *OP C: PINCER SWARM*).
-    * Observe the autonomous execution and Return-to-Base (RTB) logic.
-    * *Tip:* You can manually drag Drones and Satellites to adjust formation. The HQ is GPS-locked.
+## Author
 
----
+Hawkar / Oleksandr Ahapov — Zaporizhzhia, Ukraine
 
-## ⚠️ Disclaimer
-*This project is a conceptual prototype developed by **Hawkar** (Oleksandr Ahapov) in Zaporizhzhia, Ukraine. It serves as a visual proposal for next-generation defense interfaces and does not contain classified algorithms or hardware integrations.*
+## License / status
 
----
-**Contact:** Hawkarlol@gmail.com TG id:@hawkar_lol
+Concept prototype. Review third-party library licenses before redistribution or integration.
