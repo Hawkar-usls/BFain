@@ -1,0 +1,21 @@
+{
+  "schema_id": "hawkar.project-status.v1",
+  "project": "BFain",
+  "repository": "https://github.com/Hawkar-usls/BFain",
+  "portfolio_class": "interface_simulation_prototype",
+  "last_reviewed": "2026-08-09",
+  "summary": "Front-end command-and-control visualization and simulated multi-agent coordination prototype.",
+  "implemented": [
+    "interactive topology visualization",
+    "simulated coordination flows",
+    "high-level intent UI experiments"
+  ],
+  "not_established": [
+    "real platform integration",
+    "operational battlefield deployment",
+    "BCI integration",
+    "neural-intent decoding",
+    "autonomous weapon authority",
+    "tactical superiority"
+  ]
+}
