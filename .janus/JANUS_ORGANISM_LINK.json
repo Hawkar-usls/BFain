@@ -1,0 +1,21 @@
+{
+  "schema": "janus.organism.link.v1",
+  "organism_id": "JANUS_FEDERATED_ORGANISM",
+  "organism_repository": "Hawkar-usls/Janus",
+  "repository_ecology": "organism/JANUS_REPOSITORY_ECOLOGY_v1.3.json",
+  "membership": {
+    "class": "SUBTISSUE",
+    "subtissue_key": "bfain_interface_simulation",
+    "parent_organ": "simulation_habitat",
+    "role": "COMMAND_AND_CONTROL_VISUALIZATION_SIMULATION",
+    "authority": "SIMULATION_AND_INTERFACE_ONLY",
+    "evidence_authority": false
+  },
+  "authority_delta": 0,
+  "write_back_default": "DENY",
+  "boundaries": [
+    "SIMULATED_COORDINATION != OPERATIONAL_AUTHORITY",
+    "INTERFACE_ACTION != WORLD_EVIDENCE",
+    "SUBTISSUE_PARENT != AUTHORITY_INHERITANCE"
+  ]
+}
